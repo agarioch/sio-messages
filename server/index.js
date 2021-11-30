@@ -36,6 +36,15 @@ io.on('connection', (socket) => {
     username: socket.username,
   })
 
+  // forward the private message to the right recipient
+  socket.on('private message', ({content, to}) => {
+    console.log('sending private message', content, to)
+    socket.to(to).emit('private message', {
+      content: content,
+      from: socket.id
+    })
+  })
+
   // notify users when you disconnection
   socket.on('disconnect', () => {
     socket.broadcast.emit('user disconnected', socket.id);

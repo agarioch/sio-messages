@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { ChakraProvider, Box, Text, Flex, theme } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { ChakraProvider, Box, theme } from '@chakra-ui/react';
 import Chat from './components/chat';
 import Login from './components/login';
 import socket from './services/socket';

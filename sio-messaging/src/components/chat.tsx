@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Text, Flex, VStack } from '@chakra-ui/react';
 import socket from '../services/socket';
-import Messages from './messages';
+import Message from './message';
 import User from './user';
+import ChatForm from './chat-form';
 
 const initReactiveProperties = (user: any) => {
   user.connected = true;
@@ -12,9 +13,32 @@ const initReactiveProperties = (user: any) => {
 
 const Chat: React.FC = () => {
   const [users, setUsers] = useState<any[]>([]);
-  // get connected users
+  const [selectedUser, setSelectedUser] = useState<any>(null);
 
-  // custom hook
+  // send messages and store with selected user
+  const handleSubmit = (message: string) => {
+    if (selectedUser) {
+      socket.emit('private message', {
+        content: message,
+        to: selectedUser.userID,
+      });
+      selectedUser.messages.push({
+        content: message,
+        fromSelf: true,
+      });
+      const newMessages = selectedUser.messages;
+      setSelectedUser((prior: any) => ({
+        ...prior,
+        messages: newMessages,
+      }));
+    }
+  };
+
+  // select a user to sent messages to
+  const handleSelectUser = (user: any) => {
+    setSelectedUser(user);
+  };
+  // get connected users
   useEffect(() => {
     socket.on('users', (users) => {
       users.forEach((user: any) => {
@@ -30,16 +54,15 @@ const Chat: React.FC = () => {
       });
       setUsers(sortedUsers);
     });
-
+    // get connected users and setState
     socket.on('user connected', (user) => {
       initReactiveProperties(user);
-      console.log(users); // always []
       setUsers((priorState) => {
         // prior state will update
         return [...priorState, user];
       });
     });
-    // listen for other users disconnecting
+    // get disconnected users and setState
     socket.on('user disconnected', (id) => {
       setUsers((priorState) => {
         return priorState.map((user) => {
@@ -47,7 +70,7 @@ const Chat: React.FC = () => {
         });
       });
     });
-
+    // set own disconnected state
     socket.on('disconnect', () => {
       setUsers((priorUsers) =>
         priorUsers.map((user) => {
@@ -58,10 +81,31 @@ const Chat: React.FC = () => {
         })
       );
     });
+    // get private messages from other users
+    socket.on('private message', ({ content, from }) => {
+      console.log('@private message', content, from);
+      setUsers((priorUsers) =>
+        priorUsers.map((user) => {
+          if (user.userID === from) {
+            const messages = user.messages || [];
+            messages.push({
+              content,
+              fromSelf: false,
+              hasNewMessages: user?.userID !== selectedUser?.userID,
+            });
+            return {
+              ...user,
+              messages,
+            };
+          }
+          return user;
+        })
+      );
+    });
     return () => {
       socket.close();
     };
-  }, []);
+  }, [socket]);
 
   return (
     <Flex minH="100vh">
@@ -71,17 +115,23 @@ const Chat: React.FC = () => {
           {users.map((user) => (
             <User
               key={user.userID}
-              user={user.username}
-              connected={user.connected}
-              selected={user.self}
+              handleSelectUser={handleSelectUser}
+              user={user}
+              selectedUser={selectedUser}
             />
           ))}
         </VStack>
       </Box>
-      <Box flexGrow={1}>
-        <Text>Messages</Text>
-        <Messages />
-      </Box>
+      {selectedUser && (
+        <Box flexGrow={1}>
+          <Text>Messages</Text>
+          {selectedUser.messages &&
+            selectedUser.messages.map((message: any, i: number) => (
+              <Message key={i} message={message} />
+            ))}
+          <ChatForm handleSubmit={handleSubmit} />
+        </Box>
+      )}
     </Flex>
   );
 };
