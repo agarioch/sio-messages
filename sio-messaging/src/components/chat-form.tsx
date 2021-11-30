@@ -4,7 +4,7 @@ import { Stack, FormControl, Button, Input } from '@chakra-ui/react';
 const ChatForm = ({
   handleSubmit,
 }: {
-  handleSubmit: (message: string) => void;
+  handleSubmit: (content: string) => void;
 }) => {
   const [state, setState] = useState<'initial' | 'submitting' | 'success'>(
     'initial'

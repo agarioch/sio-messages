@@ -1,7 +1,8 @@
 import React from 'react';
 import { Box, Text } from '@chakra-ui/layout';
+import { Message } from '../types/types';
 
-const Message = ({ message }: { message: any }) => {
+const MessageCard = ({ message }: { message: Message }) => {
   return (
     <Box
       maxW="md"
@@ -20,4 +21,4 @@ const Message = ({ message }: { message: any }) => {
   );
 };
 
-export default Message;
+export default MessageCard;

@@ -1,13 +1,14 @@
-import { Box, Heading, Text } from '@chakra-ui/layout';
+import { Badge, Box, Heading, Text } from '@chakra-ui/layout';
 import React from 'react';
+import { User } from '../types/types';
 
 type UserProps = {
-  user: any;
-  handleSelectUser: (user: any) => void;
-  selectedUser: any;
+  user: User;
+  handleSelectUser: (user: User) => void;
+  selectedUser: User | null;
 };
 
-const User: React.FC<UserProps> = ({
+const UserCard: React.FC<UserProps> = ({
   user,
   handleSelectUser,
   selectedUser,
@@ -15,9 +16,10 @@ const User: React.FC<UserProps> = ({
   return (
     <Box
       textAlign="start"
+      cursor="pointer"
       onClick={() => handleSelectUser(user)}
       backgroundColor={
-        user?.userID === selectedUser?.userID ? 'blue.200' : 'transparent'
+        user?.userID === selectedUser?.userID ? 'blue.100' : 'transparent'
       }
       borderRadius=".5rem"
       px={4}
@@ -26,7 +28,11 @@ const User: React.FC<UserProps> = ({
     >
       <Heading size="sm">
         {user.username}
-        {user.self && ' (you)'}
+        {user.self && (
+          <Badge backgroundColor="blue.100" color="blue.700" ml=".5rem">
+            <i className="fas fa-user"></i>(you){' '}
+          </Badge>
+        )}
       </Heading>
       <Text
         fontSize="sm"
@@ -39,4 +45,4 @@ const User: React.FC<UserProps> = ({
   );
 };
 
-export default User;
+export default UserCard;

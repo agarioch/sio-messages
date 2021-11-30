@@ -1,52 +1,55 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Text, Flex, VStack } from '@chakra-ui/react';
 import socket from '../services/socket';
-import Message from './message';
-import User from './user';
+import MessageCard from './message-card';
+import UserCard from './user-card';
 import ChatForm from './chat-form';
+import { Message, User } from '../types/types';
 
-const initReactiveProperties = (user: any) => {
+const initReactiveProperties = (user: User) => {
   user.connected = true;
   user.messages = [];
   user.hasNewMessages = false;
 };
 
 const Chat: React.FC = () => {
-  const [users, setUsers] = useState<any[]>([]);
-  const [selectedUser, setSelectedUser] = useState<any>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
   // send messages and store with selected user
-  const handleSubmit = (message: string) => {
+  const handleSubmit = (content: string) => {
     if (selectedUser) {
       socket.emit('private message', {
-        content: message,
+        content,
         to: selectedUser.userID,
       });
+
       selectedUser.messages.push({
-        content: message,
+        content,
         fromSelf: true,
       });
+
       const newMessages = selectedUser.messages;
-      setSelectedUser((prior: any) => ({
-        ...prior,
+      setSelectedUser({
+        ...selectedUser,
         messages: newMessages,
-      }));
+      });
     }
   };
 
   // select a user to sent messages to
-  const handleSelectUser = (user: any) => {
+  const handleSelectUser = (user: User) => {
     setSelectedUser(user);
   };
   // get connected users
   useEffect(() => {
     socket.on('users', (users) => {
-      users.forEach((user: any) => {
+      users.forEach((user: User) => {
         user.self = user.userID === socket.id;
         initReactiveProperties(user);
       });
       // update users with self sorted at top
-      const sortedUsers = users.sort((a: any, b: any) => {
+      const sortedUsers = users.sort((a: User, b: User) => {
         if (a.self) return -1;
         if (b.self) return 1;
         if (a.username < b.username) return -1;
@@ -55,7 +58,7 @@ const Chat: React.FC = () => {
       setUsers(sortedUsers);
     });
     // get connected users and setState
-    socket.on('user connected', (user) => {
+    socket.on('user connected', (user: User) => {
       initReactiveProperties(user);
       setUsers((priorState) => {
         // prior state will update
@@ -63,7 +66,7 @@ const Chat: React.FC = () => {
       });
     });
     // get disconnected users and setState
-    socket.on('user disconnected', (id) => {
+    socket.on('user disconnected', (id: string) => {
       setUsers((priorState) => {
         return priorState.map((user) => {
           return user.userID === id ? { ...user, connected: false } : user;
@@ -81,9 +84,13 @@ const Chat: React.FC = () => {
         })
       );
     });
+
+    type PrivateMessage = {
+      content: string;
+      from: string;
+    };
     // get private messages from other users
-    socket.on('private message', ({ content, from }) => {
-      console.log('@private message', content, from);
+    socket.on('private message', ({ content, from }: PrivateMessage) => {
       setUsers((priorUsers) =>
         priorUsers.map((user) => {
           if (user.userID === from) {
@@ -113,7 +120,7 @@ const Chat: React.FC = () => {
         <Text>Online Users</Text>
         <VStack m={5} spacing={3} alignItems="flex-start">
           {users.map((user) => (
-            <User
+            <UserCard
               key={user.userID}
               handleSelectUser={handleSelectUser}
               user={user}
@@ -133,8 +140,8 @@ const Chat: React.FC = () => {
           <Text mb={5}>Messages</Text>
           <Flex direction="column" grow="1" justify="flex-end" minW="30rem">
             {selectedUser.messages &&
-              selectedUser.messages.map((message: any, i: number) => (
-                <Message key={i} message={message} />
+              selectedUser.messages.map((message: Message, i: number) => (
+                <MessageCard key={i} message={message} />
               ))}
           </Flex>
           <ChatForm handleSubmit={handleSubmit} />
