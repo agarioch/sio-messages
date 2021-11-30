@@ -7,21 +7,18 @@ import socket from './services/socket';
 export const App: React.FC = () => {
   const [usernameSelected, setUsernameSelected] = useState(false);
   const handleLogin = (username: string) => {
-    console.log('login', username);
     setUsernameSelected(true);
     socket.auth = { username };
     socket.connect();
-    console.log(socket.connected);
   };
   // useEffect(() => {
   socket.on('connect_error', (err) => {
     if (err.message === 'invalid username') {
-      console.log('already exists');
       setUsernameSelected(false);
     }
   });
   socket.on('connection', () => {
-    console.log('⚡️ socket.io connected', socket.connected);
+    // console.log('⚡️ socket.io connected', socket.connected);
   });
 
   return (

@@ -36,7 +36,7 @@ io.on('connection', (socket) => {
     username: socket.username,
   })
 
-  // notify users upon disconnection
+  // notify users when you disconnection
   socket.on('disconnect', () => {
     socket.broadcast.emit('user disconnected', socket.id);
   })
