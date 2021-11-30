@@ -90,26 +90,30 @@ const Chat: React.FC = () => {
       setUsers((priorUsers) => {
         return priorUsers.map((user) => {
           if (user.userID === from) {
-            const messages = user.messages;
-            messages.push({
-              content,
-              fromSelf: false,
-            });
             return {
               ...user,
-              messages,
+              messages: [...user.messages, { content, fromSelf: false }],
               hasNewMessages: user?.userID !== selectedUser?.userID,
             };
           }
           return user;
         });
       });
+      setSelectedUser((prior) => {
+        if (prior === null) return null;
+        if (prior?.userID === from) {
+          return {
+            ...prior,
+            messages: [...prior.messages, { content, fromSelf: false }],
+          };
+        } else return prior;
+      });
     });
     return () => {
       socket.close();
     };
   }, [socket]);
-
+  console.log('rendering!!');
   return (
     <Flex minH="100vh">
       <Box minW="16rem" backgroundColor="gray.200">
