@@ -41,7 +41,6 @@ export default function Login({ handleLogin }: LoginProps) {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              console.log('submitting');
               handleLogin(name);
               setName('');
             }}

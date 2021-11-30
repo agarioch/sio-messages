@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChakraProvider, Box, theme } from '@chakra-ui/react';
 import Chat from './components/chat';
 import Login from './components/login';
@@ -11,15 +11,18 @@ export const App: React.FC = () => {
     socket.auth = { username };
     socket.connect();
   };
-  // useEffect(() => {
-  socket.on('connect_error', (err) => {
-    if (err.message === 'invalid username') {
-      setUsernameSelected(false);
+  useEffect(() => {
+    if (socket) {
+      socket.on('connect_error', (err) => {
+        if (err.message === 'invalid username') {
+          setUsernameSelected(false);
+        }
+      });
+      socket.on('connection', () => {
+        // console.log('⚡️ socket.io connected', socket.connected);
+      });
     }
-  });
-  socket.on('connection', () => {
-    // console.log('⚡️ socket.io connected', socket.connected);
-  });
+  }, [socket]);
 
   return (
     <ChakraProvider theme={theme}>
