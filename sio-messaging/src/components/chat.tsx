@@ -91,11 +91,11 @@ const Chat: React.FC = () => {
             messages.push({
               content,
               fromSelf: false,
-              hasNewMessages: user?.userID !== selectedUser?.userID,
             });
             return {
               ...user,
               messages,
+              hasNewMessages: user?.userID !== selectedUser?.userID,
             };
           }
           return user;
@@ -123,14 +123,22 @@ const Chat: React.FC = () => {
         </VStack>
       </Box>
       {selectedUser && (
-        <Box flexGrow={1}>
-          <Text>Messages</Text>
-          {selectedUser.messages &&
-            selectedUser.messages.map((message: any, i: number) => (
-              <Message key={i} message={message} />
-            ))}
+        <Flex
+          direction="column"
+          justify="space-between"
+          flexGrow={1}
+          p={5}
+          maxW="40rem"
+        >
+          <Text mb={5}>Messages</Text>
+          <Flex direction="column" grow="1" justify="flex-end" minW="30rem">
+            {selectedUser.messages &&
+              selectedUser.messages.map((message: any, i: number) => (
+                <Message key={i} message={message} />
+              ))}
+          </Flex>
           <ChatForm handleSubmit={handleSubmit} />
-        </Box>
+        </Flex>
       )}
     </Flex>
   );

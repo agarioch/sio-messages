@@ -16,6 +16,8 @@ const ChatForm = ({
     <Stack
       direction={{ base: 'column', md: 'row' }}
       as={'form'}
+      w="60%"
+      minW="30rem"
       spacing={'12px'}
       onSubmit={(e) => {
         e.preventDefault();
