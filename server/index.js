@@ -1,6 +1,7 @@
 const express = require('express')
 const http = require('http')
 const { Server } = require('socket.io');
+const userHandler = require('./userHandler');
 
 const app = express();
 const server = http.createServer(app);
@@ -11,45 +12,24 @@ const io = new Server(server, {
   }
 })
 
+// USER MIDDLEWARE - validate and save username
 io.use((socket, next) => {
   const username = socket.handshake.auth.username;
   if(!username) {
     return next(new Error('invalid username'))
   }
-  // here we add a custom attribute to the socket object
+  // add custom 'username' attribute to socket object
   socket.username = username;
   next();
 })
-io.on('connection', (socket) => {
-  // fetch existing users
-  const users = [];
-  for (let [id, socket] of io.of('/').sockets) {
-    users.push({
-      userID: id,
-      username: socket.username,
-    })
-  }
-  socket.emit('users', users);
-  // notify existing users
-  socket.broadcast.emit('user connected', {
-    userID: socket.id,
-    username: socket.username,
-  })
 
-  // forward the private message to the right recipient
-  socket.on('private message', ({content, to}) => {
-    console.log('sending private message', content, to)
-    socket.to(to).emit('private message', {
-      content: content,
-      from: socket.id
-    })
-  })
+// REGISTER EVENT HANDLERS - on new socket connection
+const onSocketConnection = (socket) => {
+  userHandler(io, socket);
+} 
 
-  // notify users when you disconnection
-  socket.on('disconnect', () => {
-    socket.broadcast.emit('user disconnected', socket.id);
-  })
-})
+// LISTEN FOR CONNECTIONS - and register event handlers
+io.on('connection', onSocketConnection)
 
 app.get('/', (req, res) => res.end('server works'));
 
