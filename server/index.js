@@ -12,19 +12,11 @@ const io = new Server(server, {
   }
 })
 
-// USER MIDDLEWARE - validate and save username
-io.use((socket, next) => {
-  const username = socket.handshake.auth.username;
-  if(!username) {
-    return next(new Error('invalid username'))
-  }
-  // add custom 'username' attribute to socket object
-  socket.username = username;
-  next();
-})
+io.use(userHandshake);
 
 // REGISTER EVENT HANDLERS - on new socket connection
 const onSocketConnection = (socket) => {
+  console.log('onSocketConnection:sessionID', socket.sessionID)
   userHandler(io, socket);
 } 
 

@@ -7,7 +7,6 @@ import ChatForm from './chat-form';
 import { Message, User } from '../types/types';
 
 const initReactiveProperties = (user: User) => {
-  user.connected = true;
   user.messages = [];
   user.hasNewMessages = false;
 };
@@ -15,6 +14,7 @@ const initReactiveProperties = (user: User) => {
 const Chat: React.FC = () => {
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
   // SEND MESSAGE - emit message and add to user
   const handleSubmit = (content: string) => {
     if (selectedUser) {
@@ -42,7 +42,11 @@ const Chat: React.FC = () => {
     // GET USERS ON FIRST CONNECT - get online users
     socket.on('users', (users) => {
       users.forEach((user: User) => {
-        user.self = user.userID === socket.id;
+        // TODO: init connected: check existing users and see if connected
+        user.connected = true;
+        // init self
+        user.self = user.userID === socket.userID;
+        // init messages & hasNewMessages
         initReactiveProperties(user);
       });
       // sort users with self at top and then alphabetical
@@ -52,17 +56,30 @@ const Chat: React.FC = () => {
         if (a.username < b.username) return -1;
         return a.username > b.username ? 1 : 0;
       });
+      console.log('users', users);
       setUsers(sortedUsers);
     });
     // ANOTHER USER CONNECTED - add to users
     socket.on('user connected', (user: User) => {
       initReactiveProperties(user);
+      console.log('user connected', user);
       setUsers((priorState) => {
-        return [...priorState, user];
+        if (priorState.find((existing) => existing.userID === user.userID)) {
+          // update existing user
+          return priorState.map((existing) =>
+            existing.userID === user.userID
+              ? { ...existing, connected: true }
+              : existing
+          );
+        } else {
+          // add new user
+          return [...priorState, user];
+        }
       });
     });
     // ANOTHER USER DISCONNECTED - set connected false
     socket.on('user disconnected', (id: string) => {
+      console.log('user disconnected', id);
       setUsers((priorState) => {
         return priorState.map((user) => {
           return user.userID === id ? { ...user, connected: false } : user;
@@ -84,15 +101,17 @@ const Chat: React.FC = () => {
     type PrivateMessage = {
       content: string;
       from: string;
+      to: string;
     };
     // RECIEVE MESSAGE - store with sending user
-    socket.on('private message', ({ content, from }: PrivateMessage) => {
+    socket.on('private message', ({ content, from, to }: PrivateMessage) => {
       setUsers((priorUsers) => {
         return priorUsers.map((user) => {
-          if (user.userID === from) {
+          const fromSelf = socket.userID === from;
+          if (user.userID === (fromSelf ? to : from)) {
             return {
               ...user,
-              messages: [...user.messages, { content, fromSelf: false }],
+              messages: [...user.messages, { content, fromSelf }],
               hasNewMessages: user?.userID !== selectedUser?.userID,
             };
           }
@@ -113,7 +132,7 @@ const Chat: React.FC = () => {
       socket.close();
     };
   }, [socket]);
-  console.log('rendering!!');
+
   return (
     <Flex minH="100vh">
       <Box

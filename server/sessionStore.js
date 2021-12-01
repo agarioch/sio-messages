@@ -15,11 +15,13 @@ class InMemorySessionStore extends SessionStore {
   }
 
   saveSession(id, session) {
-    this.sessions.entries(id, session);
+    console.log('store:saveSession:id', id, session)
+    this.sessions.set(id, session);
   }
-
-  findAllSession() {
-    return [...this.session.values()];
+  
+  findAllSessions() {
+    console.log('store:findAllSessions:sessions', this.sessions.values())
+    return [...this.sessions.values()];
   }
 }
 

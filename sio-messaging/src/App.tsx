@@ -11,7 +11,29 @@ export const App: React.FC = () => {
     socket.auth = { username };
     socket.connect();
   };
+
   useEffect(() => {
+    const sessionID = localStorage.getItem('sessionID');
+
+    if (sessionID) {
+      console.log('localStorage:sessionID', sessionID);
+      setUsernameSelected(true);
+      socket.auth = { sessionID };
+      socket.connect();
+    }
+
+    socket.on(
+      'session',
+      ({ sessionID, userID }: { sessionID: string; userID: string }) => {
+        // attach session ID to next reconnection attempts
+        socket.auth = { sessionID };
+        // store in localStorage
+        localStorage.setItem('sessionID', sessionID);
+        // save the ID of the user
+        socket.userID = userID;
+      }
+    );
+
     if (socket) {
       socket.on('connect_error', (err) => {
         if (err.message === 'invalid username') {
@@ -22,6 +44,9 @@ export const App: React.FC = () => {
         // console.log('⚡️ socket.io connected', socket.connected);
       });
     }
+    return () => {
+      socket.off('connect_error');
+    };
   }, [socket]);
 
   return (

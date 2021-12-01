@@ -6,10 +6,12 @@ const randomId = () => crypto.randomBytes(8).toString("hex");
 const sessionStore = new InMemorySessionStore();
 
 const userHandshake = (socket, next) => {
-  const sessionID = socket.username.auth.sessionID;
+  console.log('userHandshake:sessionID', socket.handshake.auth)
+  const sessionID = socket.handshake.auth.sessionID;
   if (sessionID) {
     // find existing session
     const session = sessionStore.findSession(sessionID);
+    console.log('userHandshake:session', session);
     if(session) {
       socket.sessionID = sessionID;
       socket.userID = session.userID;
@@ -17,7 +19,7 @@ const userHandshake = (socket, next) => {
       return next();
     }
   }
-
+  
   const username = socket.handshake.auth.username;
   if(!username) {
     return next(new Error('invalid username'))
@@ -30,11 +32,12 @@ const userHandshake = (socket, next) => {
 }
 
 const userHandler = (io, socket) => {
+  console.log('userHandler:sessionID', socket.sessionID);
   // PERSIST SESSION
   sessionStore.saveSession(socket.sessionID, {
     userID: socket.userID,
     username: socket.username,
-    contected: true,
+    connected: true,
   });
   // emit session details
   socket.emit('session', {
@@ -48,13 +51,15 @@ const userHandler = (io, socket) => {
   const users = [];
   // get all connected clients
   sessionStore.findAllSessions().forEach(session => {
+    console.log('userHandler:sessionStore:session', session)
     users.push({
-      userID: session.id,
+      userID: session.userID,
       username: session.username,
       connected: session.connected,
     })
   });
   // send all users to new client
+  console.log('userHandler:users', users)
   socket.emit('users', users);
   // notify existing users of new client
   socket.broadcast.emit('user connected', {
