@@ -116,8 +116,13 @@ const Chat: React.FC = () => {
   console.log('rendering!!');
   return (
     <Flex minH="100vh">
-      <Box minW="16rem" backgroundColor="gray.200">
-        <Text>Online Users</Text>
+      <Box
+        minW="16rem"
+        backgroundColor="gray.50"
+        borderRight="1px"
+        borderRightColor="gray.300"
+      >
+        <Text mt={5}>Select user</Text>
         <VStack m={5} spacing={3} alignItems="flex-start">
           {users.map((user) => (
             <UserCard

@@ -9,7 +9,6 @@ import {
   Button,
   Heading,
   Text,
-  useColorModeValue,
 } from '@chakra-ui/react';
 
 type LoginProps = {
@@ -19,12 +18,7 @@ type LoginProps = {
 export default function Login({ handleLogin }: LoginProps) {
   const [name, setName] = useState('');
   return (
-    <Flex
-      minH={'100vh'}
-      align={'center'}
-      justify={'center'}
-      bg={useColorModeValue('gray.50', 'gray.800')}
-    >
+    <Flex minH={'100vh'} align={'center'} justify={'center'} bg={'gray.50'}>
       <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
         <Stack align={'center'}>
           <Heading fontSize={'4xl'}>Create username to chat</Heading>
@@ -32,12 +26,7 @@ export default function Login({ handleLogin }: LoginProps) {
             Direct messaging with other users ✌️
           </Text>
         </Stack>
-        <Box
-          rounded={'lg'}
-          bg={useColorModeValue('white', 'gray.700')}
-          boxShadow={'lg'}
-          p={8}
-        >
+        <Box rounded={'lg'} bg={'white'} boxShadow={'lg'} p={8}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
