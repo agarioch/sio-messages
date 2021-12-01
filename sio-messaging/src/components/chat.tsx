@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Text, Flex, VStack } from '@chakra-ui/react';
+import { Box, Text, Flex, VStack, Heading, Divider } from '@chakra-ui/react';
 import socket from '../services/socket';
 import MessageCard from './message-card';
 import UserCard from './user-card';
@@ -138,7 +138,13 @@ const Chat: React.FC = () => {
           p={5}
           maxW="40rem"
         >
-          <Text mb={5}>Messages</Text>
+          <Heading size="mg">
+            Chat with{' '}
+            <span style={{ color: 'var(--chakra-colors-blue-600)' }}>
+              {selectedUser.username}
+            </span>
+          </Heading>
+          <Divider></Divider>
           <Flex direction="column" grow="1" justify="flex-end" minW="30rem">
             {selectedUser.messages &&
               selectedUser.messages.map((message: Message, i: number) => (

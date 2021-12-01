@@ -27,9 +27,9 @@ export default function Login({ handleLogin }: LoginProps) {
     >
       <Stack spacing={8} mx={'auto'} maxW={'lg'} py={12} px={6}>
         <Stack align={'center'}>
-          <Heading fontSize={'4xl'}>Sign in to your account</Heading>
+          <Heading fontSize={'4xl'}>Create username to chat</Heading>
           <Text fontSize={'lg'} color={'gray.600'}>
-            to enjoy all of our cool features ✌️
+            Direct messaging with other users ✌️
           </Text>
         </Stack>
         <Box
