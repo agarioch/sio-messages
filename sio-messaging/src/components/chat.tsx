@@ -7,7 +7,6 @@ import ChatForm from './chat-form';
 import { Message, User } from '../types/types';
 
 const initReactiveProperties = (user: User) => {
-  user.messages = [];
   user.hasNewMessages = false;
 };
 
@@ -41,9 +40,13 @@ const Chat: React.FC = () => {
   useEffect(() => {
     // GET USERS ON FIRST CONNECT - get online users
     socket.on('users', (users) => {
+      console.log('users', users);
       users.forEach((user: User) => {
+        user.messages.forEach((message) => {
+          message.fromSelf = message.from === socket.userID;
+        });
         // TODO: init connected: check existing users and see if connected
-        user.connected = true;
+        // user.connected
         // init self
         user.self = user.userID === socket.userID;
         // init messages & hasNewMessages
@@ -56,12 +59,13 @@ const Chat: React.FC = () => {
         if (a.username < b.username) return -1;
         return a.username > b.username ? 1 : 0;
       });
-      console.log('users', users);
+      console.log('sorted users', sortedUsers);
       setUsers(sortedUsers);
     });
     // ANOTHER USER CONNECTED - add to users
     socket.on('user connected', (user: User) => {
       initReactiveProperties(user);
+      if (!user.messages) user.messages = [];
       console.log('user connected', user);
       setUsers((priorState) => {
         if (priorState.find((existing) => existing.userID === user.userID)) {

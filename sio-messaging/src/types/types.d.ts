@@ -10,4 +10,6 @@ export type User = {
 export type Message = {
   content: string;
   fromSelf: boolean;
+  from?: string;
+  to?: string;
 };

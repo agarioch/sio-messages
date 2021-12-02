@@ -1,9 +1,11 @@
 const crypto = require('crypto');
 const { InMemorySessionStore } = require('./sessionStore');
+const { InMemoryMessageStore } = require('./messageStore');
 
-// generate unique ID
 const randomId = () => crypto.randomBytes(8).toString('hex');
+
 const sessionStore = new InMemorySessionStore();
+const messageStore = new InMemoryMessageStore();
 
 const userHandshake = (socket, next) => {
   const sessionID = socket.handshake.auth.sessionID;
@@ -46,12 +48,24 @@ const userHandler = (io, socket) => {
 
   // SEND USERS
   const users = [];
+  // get prior messages from store & attach to other chat participant
+  const messagesPerUser = new Map();
+  messageStore.findMessagesForUser(socket.userID).forEach((message) => {
+    const { from, to } = message;
+    const otherUser = socket.userID === from ? to : from;
+    if (messagesPerUser.has(otherUser)) {
+      messagesPerUser.get(otherUser).push(message);
+    } else {
+      messagesPerUser.set(otherUser, [message]);
+    }
+  });
   // get all connected clients
   sessionStore.findAllSessions().forEach((session) => {
     users.push({
       userID: session.userID,
       username: session.username,
       connected: session.connected,
+      messages: messagesPerUser.get(session.userID) || [],
     });
   });
   // send all users to new client
@@ -65,11 +79,13 @@ const userHandler = (io, socket) => {
 
   // PRIVATE MESSAGE - notify relevant client (and other tabs of sender)
   socket.on('private message', ({ content, to }) => {
-    socket.to(to).to(socket.userID).emit('private message', {
+    const message = {
       content: content,
       from: socket.userID,
       to,
-    });
+    };
+    socket.to(to).to(socket.userID).emit('private message', message);
+    messageStore.saveMessage(message);
   });
 
   // DISCONNECT - notify other clients
